@@ -5,8 +5,10 @@ class Game extends React.Component{
     constructor(){
         super();
         this.levelLimit = {
-            x: 1024,
-            y: 512
+            x: 1,
+            x1: 1024,
+            y: 1,
+            y1: 512
         }
     }
     getChildContext(){
@@ -16,9 +18,10 @@ class Game extends React.Component{
     }
     render(){
         const style = {
-            width: this.levelLimit.x,
-            height: this.levelLimit.y,
-            background: "lightblue"
+            width: this.levelLimit.x1,
+            height: this.levelLimit.y1,
+            background: "lightblue",
+            position: "relative"
         };
 
         return (
