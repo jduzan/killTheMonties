@@ -100,21 +100,11 @@ class Ennemy extends React.Component{
             if(this.state.direction.left){
                 const diffX = rect.x - this.context.levelLimit.x
                 newPosition.x = this.state.position.x - diffX;
-
-                if(newPosition.x >= this.context.levelLimit.x1){
-                    newPosition.x = this.context.levelLimit.x1;
-                }
-
                 newDirection.left = false;
                 newDirection.right = true;
             }else{
                 const diffX = this.context.levelLimit.x1 - rect.x1;
                 newPosition.x = this.state.position.x + diffX;
-
-                if(newPosition.x <= this.context.levelLimit.x){
-                    newPosition.x = this.context.levelLimit.x;
-                }
-
                 newDirection.left = true;
                 newDirection.right = false;
             }
@@ -126,21 +116,11 @@ class Ennemy extends React.Component{
             if(this.state.direction.bottom){
                 const diffY = rect.y - this.context.levelLimit.y1;
                 newPosition.y = this.state.position.y - diffY;
-
-                if(newPosition.y >= this.context.levelLimit.y1){
-                    newPosition.y = this.context.levelLimit.y1 - GameConstant.ENNEMY_SIZE.y;
-                }
-
                 newDirection.bottom = false;
                 newDirection.top = true;
             }else{
                 const diffY = this.context.levelLimit.y - rect.y;
                 newPosition.y = this.state.position.y + diffY;
-
-                if(newPosition.y <= this.context.levelLimit.y){
-                    newPosition.y = this.context.levelLimit.y;
-                }
-
                 newDirection.bottom = true;
                 newDirection.top = false;
             }
