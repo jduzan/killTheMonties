@@ -2,27 +2,37 @@ import React from "react";
 import PropTypes from "prop-types";
 import autobind from "autobind-decorator";
 
-const EVENT_TYPE = {
-    key: "key"
+export const EVENT_TYPE = {
+    key: "key",
+    mouse: "mouse"
 }
 
 class Events extends React.Component{
     constructor(){
         super();
         this.subscribers = {
-            key: []
+            key: [],
+            mouse: []
         };
         this.key = {};
+        this.mouse = {
+            position: {
+                x: 0,
+                y: 0
+            },
+            leftClick: false,
+            rightClick: false
+        };
     }
     componentDidMount(){
         window.addEventListener("keydown", this.onKeyDown, true);
         window.addEventListener("keyup", this.onKeyUp, true);
+        window.addEventListener("mousemove", this.onMouseMove, true);
     }
     getChildContext(){
         return {
             subscribeEvents: this.subscribeEvents,
-            unsubcribeEvents: this.unsubcribeEvents,
-            EVENT_TYPE: EVENT_TYPE
+            unsubcribeEvents: this.unsubcribeEvents
         }
     }
     @autobind
@@ -31,6 +41,7 @@ class Events extends React.Component{
             return this.subscribers[eventType].push(callback);
         }
     }
+    @autobind
     unsubcribeEvents(eventId, eventType){
         this.subscribers[eventType].splice(eventId, 1);
     }
@@ -43,6 +54,19 @@ class Events extends React.Component{
     onKeyUp(event){
         this.key[event.code] = false;
         this.notifyKeyEvent();
+    }
+    @autobind
+    onMouseMove(event){
+        this.mouse.position = {
+            x: event.x,
+            y: event.y
+        };
+
+        this.notifyMouseEvent();
+    }
+    @autobind
+    notifyMouseEvent(){
+        this.subscribers[EVENT_TYPE.mouse].forEach((callback) => callback(this.mouse));
     }
     @autobind
     notifyKeyEvent(){
@@ -59,8 +83,7 @@ class Events extends React.Component{
 
 Events.childContextTypes = {
     subscribeEvents: PropTypes.func,
-    unsubcribeEvents: PropTypes.func,
-    EVENT_TYPE: PropTypes.object
+    unsubcribeEvents: PropTypes.func
 };
 
 export default Events;

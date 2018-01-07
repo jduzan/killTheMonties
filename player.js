@@ -2,6 +2,8 @@ import React from "react";
 import PropTypes from 'prop-types';
 import autobind from "autobind-decorator";
 import * as GameConstant from "./gameVar";
+import {EVENT_TYPE} from "./events";
+import {clone} from "./utils"
 
 class Player extends React.Component{
     constructor(){
@@ -10,7 +12,8 @@ class Player extends React.Component{
             position: {
                 x: 0,
                 y: 0
-            }
+            },
+            orientation: 0
         };
 
         this.movement = {
@@ -23,14 +26,26 @@ class Player extends React.Component{
             top: false,
             bottom: false
         };
+        this.orientation = {
+            x: 0,
+            y: 0
+        };
     }
     componentDidMount(){
         this.loopId = this.context.subscribeLoop(this.update);
-        this.eventId = this.context.subscribeEvents(this.context.EVENT_TYPE.key, this.onKeyEvent);
+        this.keyEventId = this.context.subscribeEvents(EVENT_TYPE.key, this.onKeyEvent);
+        this.mouseEventId = this.context.subscribeEvents(EVENT_TYPE.mouse, this.onMouseEvent);
     }
     componentWillUnmount(){
         this.context.unsubscribeLoop(this.loopId);
-        this.context.unsubcribeEvents(this.eventId);
+        this.context.unsubcribeEvents(this.keyEventId);
+    }
+    @autobind
+    onMouseEvent(mouse){
+        this.orientation = {
+            x: mouse.position.x,
+            y: mouse.position.y
+        }
     }
     @autobind
     onKeyEvent(keyState){
@@ -38,7 +53,7 @@ class Player extends React.Component{
             x: 0,
             y: 0
         },
-        newDirection = JSON.parse(JSON.stringify(this.direction));
+        newDirection = clone(this.direction);
 
         if(keyState["KeyW"] === true){
             newMovement.y -= GameConstant.PLAYER_SPEED.y;
@@ -81,13 +96,15 @@ class Player extends React.Component{
     }
     @autobind
     update(){
+        let newPosition = clone(this.state.position),
+            newOrientation = clone(this.state.orientation);
+
+        // Position
         if(this.movement.x != 0 || this.movement.y != 0){
-            let newPosition = JSON.parse(JSON.stringify(this.state.position)),
-                newMovement = {
+            let newMovement = {
                 x: 0,
                 y: 0
             };
-
             newPosition.x += this.movement.x;
             newPosition.y += this.movement.y;
 
@@ -129,12 +146,23 @@ class Player extends React.Component{
                     }
                 }
             }
-
-            this.setState({
-                position: newPosition,
-                movement: newMovement
-            });
         }
+
+        this.setState({
+            position: newPosition,
+            orientation: this.getMouseAngle(this.orientation)
+        });
+    }
+    @autobind
+    getMouseAngle(mousePosition){
+        // compute player orientation based on mouse direction
+        const   rect = this.getBoundingRectangle(),
+                xCenter = rect.x1 - GameConstant.PLAYER_SIZE.x / 2,
+                yCenter = rect.y1 - GameConstant.PLAYER_SIZE.y / 2;
+
+        const radians = Math.atan2(mousePosition.x - xCenter, mousePosition.y - yCenter);
+
+        return Math.floor((radians * (180 / Math.PI) * -1) + 180);
     }
     render(){
         const style = {
@@ -143,10 +171,23 @@ class Player extends React.Component{
             background: "red",
             position: "absolute",
             left: this.state.position.x,
-            top: this.state.position.y
-        }
+            top: this.state.position.y,
+            transform: `rotate(${this.state.orientation}deg)`
+        };
+
+        const tipStyle = {
+            position: "absolute",
+            top: 0,
+            left: `${GameConstant.PLAYER_SIZE.x / 2 - 10}px`,
+            width: "20px",
+            height: `${GameConstant.PLAYER_SIZE.y / 2}px`,
+            background: "green"
+        };
+
         return (
-            <div style={style}></div>
+            <div style={style}>
+                <div style={tipStyle}></div>
+            </div>
         )
     }
 }
@@ -157,8 +198,7 @@ Player.contextTypes = {
     unsubscribeLoop: PropTypes.func,
     levelLimit: PropTypes.object,
     subscribeEvents: PropTypes.func,
-    unsubcribeEvents: PropTypes.func,
-    EVENT_TYPE: PropTypes.object
+    unsubcribeEvents: PropTypes.func
 };
 
 export default Player;
