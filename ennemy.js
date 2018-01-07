@@ -28,16 +28,23 @@ class Ennemy extends React.Component{
         };
     }
     componentDidMount(){
-        const startingPosition = this.getStartingPosition();
+        this.ennemyId = this.context.registerEnnemy(this.state);
+
+        let startingPosition, rect;
+
+        do{
+            startingPosition = this.getStartingPosition();
+            rect = this.getBoundingRectangle(startingPosition.x, startingPosition.y);
+        } while(!this.context.checkEnnemyStartingPositionAvailable(rect));
 
         this.setState({
             position: startingPosition,
             direction: this.getStartingDirection(),
             color: this.getRandomColor(),
-            boundingRect: this.getBoundingRectangle(startingPosition.x, startingPosition.y)
+            boundingRect: rect
         }, () => {
             this.loopId = this.context.subscribeLoop(this.update);
-            this.ennemyId = this.context.registerEnnemy(this.state);
+            this.context.updateEnnemy(this.state, this.ennemyId);
         });
     }
     componentWillUnmount(){
@@ -229,7 +236,8 @@ Ennemy.contextTypes = {
     checkPositionIsAvailable: PropTypes.func,
     registerEnnemy: PropTypes.func,
     updateEnnemy: PropTypes.func,
-    checkEnnemyCollision: PropTypes.func
+    checkEnnemyCollision: PropTypes.func,
+    checkEnnemyStartingPositionAvailable: PropTypes.func
 };
 
 export default Ennemy;

@@ -20,7 +20,8 @@ class Game extends React.Component{
             checkPositionIsAvailable: this.checkPositionIsAvailable,
             registerEnnemy: this.registerEnnemy,
             updateEnnemy: this.updateEnnemy,
-            checkEnnemyCollision: this.checkEnnemyCollision
+            checkEnnemyCollision: this.checkEnnemyCollision,
+            checkEnnemyStartingPositionAvailable: this.checkEnnemyStartingPositionAvailable
         }
     }
     @autobind
@@ -35,6 +36,10 @@ class Game extends React.Component{
 
             const ennemyRect = this.ennemies[i].boundingRect;
 
+            if(!ennemyRect){
+                continue;
+            }
+
             if(checkCollision(rect, ennemyRect)){
                 colliding = true;
                 break;
@@ -42,6 +47,10 @@ class Game extends React.Component{
         }
 
         return colliding;
+    }
+    @autobind
+    checkEnnemyStartingPositionAvailable(rect){
+        return !this.checkEnnemyCollision(rect);
     }
     @autobind
     checkPositionIsAvailable(axe, rect){
@@ -86,7 +95,8 @@ Game.childContextTypes = {
     checkPositionIsAvailable: PropTypes.func,
     registerEnnemy: PropTypes.func,
     updateEnnemy: PropTypes.func,
-    checkEnnemyCollision: PropTypes.func
+    checkEnnemyCollision: PropTypes.func,
+    checkEnnemyStartingPositionAvailable: PropTypes.func
 };
 
 export default Game;
