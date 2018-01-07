@@ -43,7 +43,7 @@ class Loop extends React.Component{
     }
     @autobind
     subscribeLoop(callback){
-        this.loopCallbacks.push(callback);
+        return this.loopCallbacks.push(callback) - 1;
     }
     @autobind
     unsubscribeLoop(callbackId){

@@ -2,6 +2,12 @@ import React from "react";
 import PropTypes from 'prop-types';
 import autobind from "autobind-decorator";
 import * as GameConstant from "./gameVar";
+import {clone} from "./utils";
+
+const COLORS = [
+    "AliceBlue","AntiqueWhite","Aqua","Aquamarine","Azure","Beige","Bisque","Black","BlanchedAlmond","Blue","BlueViolet","Brown","BurlyWood","CadetBlue","Chartreuse","Chocolate","Coral","CornflowerBlue","Cornsilk","Crimson","Cyan","DarkBlue","DarkCyan","DarkGoldenRod","DarkGray","DarkGrey","DarkGreen","DarkKhaki","DarkMagenta","DarkOliveGreen","Darkorange","DarkOrchid","DarkRed","DarkSalmon","DarkSeaGreen","DarkSlateBlue","DarkSlateGray","DarkSlateGrey","DarkTurquoise","DarkViolet","DeepPink","DeepSkyBlue","DimGray","DimGrey","DodgerBlue","FireBrick","FloralWhite","ForestGreen","Fuchsia","Gainsboro","GhostWhite","Gold","GoldenRod","Gray","Grey","Green","GreenYellow","HoneyDew","HotPink","IndianRed","Indigo","Ivory","Khaki","Lavender","LavenderBlush","LawnGreen","LemonChiffon","LightCoral","LightCyan","LightGoldenRodYellow","LightGray","LightGrey","LightGreen","LightPink","LightSalmon","LightSeaGreen","LightSkyBlue","LightSlateGray","LightSlateGrey","LightSteelBlue","LightYellow","Lime","LimeGreen","Linen","Magenta","Maroon","MediumAquaMarine","MediumBlue","MediumOrchid","MediumPurple","MediumSeaGreen","MediumSlateBlue","MediumSpringGreen","MediumTurquoise","MediumVioletRed","MidnightBlue","MintCream","MistyRose","Moccasin","NavajoWhite","Navy","OldLace","Olive","OliveDrab","Orange","OrangeRed","Orchid","PaleGoldenRod","PaleGreen","PaleTurquoise","PaleVioletRed","PapayaWhip","PeachPuff","Peru","Pink","Plum","PowderBlue","Purple","Red","RosyBrown","RoyalBlue","SaddleBrown","Salmon","SandyBrown","SeaGreen","SeaShell","Sienna","Silver","SkyBlue","SlateBlue","SlateGray","SlateGrey","Snow","SpringGreen","SteelBlue","Tan","Teal","Thistle","Tomato","Turquoise","Violet","Wheat","White","WhiteSmoke","Yellow","YellowGreen"
+];
+
 
 class Ennemy extends React.Component{
     constructor(){
@@ -11,23 +17,36 @@ class Ennemy extends React.Component{
                 x: 0,
                 y: 0
             },
+            boundingRect: null,
             direction: {
                 left: false,
                 top: false,
                 right: false,
                 bottom: false
-            }
+            },
+            color: null
         };
     }
     componentDidMount(){
-        this.loopId = this.context.subscribeLoop(this.update);
+        const startingPosition = this.getStartingPosition();
+
         this.setState({
-            position: this.getStartingPosition(),
-            direction: this.getStartingDirection()
+            position: startingPosition,
+            direction: this.getStartingDirection(),
+            color: this.getRandomColor(),
+            boundingRect: this.getBoundingRectangle(startingPosition.x, startingPosition.y)
+        }, () => {
+            this.loopId = this.context.subscribeLoop(this.update);
+            this.ennemyId = this.context.registerEnnemy(this.state);
         });
     }
     componentWillUnmount(){
         this.context.unsubscribeLoop(this.loopId);
+    }
+    @autobind
+    getRandomColor(){
+        const randomIndex = Math.floor(Math.random() * (COLORS.length - 0 + 1));
+        return COLORS[randomIndex];
     }
     @autobind
     getBoundingRectangle(x, y){
@@ -89,17 +108,25 @@ class Ennemy extends React.Component{
     }
     @autobind
     update(){
-        const   rect = this.getBoundingRectangle(),
-                newX = this.getNextPosition("x"),
-                newY = this.getNextPosition("y"),
+        let newDirection = clone(this.state.direction);
+
+        const  rect = this.getBoundingRectangle();
+
+        // If colliding with another ennemy, go the other way
+        if(this.context.checkEnnemyCollision(rect, this.ennemyId)){
+            for(let key in newDirection){
+                newDirection[key] = !newDirection[key];
+            }
+        }
+
+        const   newX = this.getNextPosition("x", newDirection),
+                newY = this.getNextPosition("y", newDirection),
                 newRect = this.getBoundingRectangle(newX, newY);
 
         let newPosition = {
             x: null,
             y: null
         };
-
-        let newDirection = JSON.parse(JSON.stringify(this.state.direction));
 
         if(this.context.checkPositionIsAvailable("x", newRect)){
             newPosition.x = newX;
@@ -155,20 +182,25 @@ class Ennemy extends React.Component{
 
         this.setState({
             position: newPosition,
-            direction: newDirection
+            direction: newDirection,
+            boundingRect: this.getBoundingRectangle(newPosition.x, newPosition.y)
+        }, () => {
+            this.context.updateEnnemy(this.state, this.ennemyId);
         });
     }
     @autobind
-    getNextPosition(axe){
+    getNextPosition(axe, direction){
         // Return next position according to direction and ENNEMY_SPEED
+        const currentDirection = direction || this.state.direction;
+
         if(axe === "x"){
-            if(this.state.direction.left){
+            if(direction.left){
                 return this.state.position.x - GameConstant.ENNEMY_SPEED.x;
             }else{
                 return this.state.position.x + GameConstant.ENNEMY_SPEED.x;
             }
         }else if(axe === "y"){
-            if(this.state.direction.top){
+            if(direction.top){
                 return this.state.position.y - GameConstant.ENNEMY_SPEED.y;
             }else{
                 return this.state.position.y + GameConstant.ENNEMY_SPEED.y;
@@ -179,7 +211,7 @@ class Ennemy extends React.Component{
         const style = {
             width: `${GameConstant.ENNEMY_SIZE.x}px`,
             height: `${GameConstant.ENNEMY_SIZE.y}px`,
-            background: "red",
+            backgroundColor: this.state.color,
             position: "absolute",
             left: this.state.position.x,
             top: this.state.position.y
@@ -194,7 +226,10 @@ class Ennemy extends React.Component{
 Ennemy.contextTypes = {
     subscribeLoop: PropTypes.func,
     levelLimit: PropTypes.object,
-    checkPositionIsAvailable: PropTypes.func
+    checkPositionIsAvailable: PropTypes.func,
+    registerEnnemy: PropTypes.func,
+    updateEnnemy: PropTypes.func,
+    checkEnnemyCollision: PropTypes.func
 };
 
 export default Ennemy;

@@ -1,6 +1,6 @@
 export const ENNEMY_SPEED = {
-    x: 10,
-    y: 10
+    x: 5,
+    y: 5
 }
 
 export const PLAYER_SPEED = {

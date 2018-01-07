@@ -11,7 +11,18 @@ class App extends React.Component{
             <Loop>
                 <Events>
                     <Game>
-                        <Player />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
+                        <Ennemy />
                     </Game>
                 </Events>
             </Loop>
