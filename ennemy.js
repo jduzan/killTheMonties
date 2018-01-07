@@ -20,11 +20,14 @@ class Ennemy extends React.Component{
         };
     }
     componentDidMount(){
-        this.context.subscribeLoop(this.update);
+        this.loopId = this.context.subscribeLoop(this.update);
         this.setState({
             position: this.getStartingPosition(),
             direction: this.getStartingDirection()
         });
+    }
+    componentWillUnmount(){
+        this.context.unsubscribeLoop(this.loopId);
     }
     @autobind
     getBoundingRectangle(x, y){
@@ -69,23 +72,27 @@ class Ennemy extends React.Component{
     @autobind
     getStartingPosition(){
         // Get a random position inside levelLimit
-        let position = {};
+        let position = {},
+            rect;
 
         do{
             position.x = Math.floor(Math.random() * (this.context.levelLimit.x1 - this.context.levelLimit.x + 1));
-        }while(!this.checkPositionIsAvailable(position.x, "x"));
+            rect = this.getBoundingRectangle(position.x, 0);
+        }while(!this.context.checkPositionIsAvailable("x", rect));
 
         do{
             position.y = Math.floor(Math.random() * (this.context.levelLimit.y1 - this.context.levelLimit.y + 1));
-        }while(!this.checkPositionIsAvailable(position.y, "y")) ;
+            rect = this.getBoundingRectangle(position.x, position.y);
+        }while(!this.context.checkPositionIsAvailable("y", rect)) ;
 
         return position;
     }
     @autobind
     update(){
-        const rect = this.getBoundingRectangle();
-        let newX = this.getNextPosition("x"),
-            newY = this.getNextPosition("y");
+        const   rect = this.getBoundingRectangle(),
+                newX = this.getNextPosition("x"),
+                newY = this.getNextPosition("y"),
+                newRect = this.getBoundingRectangle(newX, newY);
 
         let newPosition = {
             x: null,
@@ -94,7 +101,7 @@ class Ennemy extends React.Component{
 
         let newDirection = JSON.parse(JSON.stringify(this.state.direction));
 
-        if(this.checkPositionIsAvailable(newX, "x")){
+        if(this.context.checkPositionIsAvailable("x", newRect)){
             newPosition.x = newX;
         }else{
             if(this.state.direction.left){
@@ -120,7 +127,7 @@ class Ennemy extends React.Component{
             }
         }
 
-        if(this.checkPositionIsAvailable(newY, "y")){
+        if(this.context.checkPositionIsAvailable("y", newRect)){
             newPosition.y = newY;
         }else{
             if(this.state.direction.bottom){
@@ -168,36 +175,6 @@ class Ennemy extends React.Component{
             }
         }
     }
-    @autobind
-    checkPositionIsAvailable(position, axe){
-        const   x = axe === "x" ? position : this.state.position.x,
-                y = axe === "y" ? position : this.state.position.y,
-                rect = this.getBoundingRectangle(x, y);
-
-        if(axe === "x"){
-            if(this.state.direction.left){
-                if(rect.x <= this.context.levelLimit.x){
-                    return false;
-                }
-            }else{
-                if(rect.x1 >= this.context.levelLimit.x1){
-                    return false;
-                }
-            }
-        }else if(axe === "y"){
-            if(this.state.direction.top){
-                if(rect.y <= this.context.levelLimit.y){
-                    return false;
-                }
-            }else{
-                if(rect.y1 >= this.context.levelLimit.y1){
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
     render(){
         const style = {
             width: `${GameConstant.ENNEMY_SIZE.x}px`,
@@ -216,7 +193,8 @@ class Ennemy extends React.Component{
 
 Ennemy.contextTypes = {
     subscribeLoop: PropTypes.func,
-    levelLimit: PropTypes.object
+    levelLimit: PropTypes.object,
+    checkPositionIsAvailable: PropTypes.func
 };
 
 export default Ennemy;

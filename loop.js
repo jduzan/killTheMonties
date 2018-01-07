@@ -15,7 +15,8 @@ class Loop extends React.Component{
     }
     getChildContext(){
         return {
-            subscribeLoop: this.subscribeLoop
+            subscribeLoop: this.subscribeLoop,
+            unsubscribeLoop: this.unsubscribeLoop
         }
     }
     @autobind
@@ -45,8 +46,8 @@ class Loop extends React.Component{
         this.loopCallbacks.push(callback);
     }
     @autobind
-    unsubscribeLoop(callback){
-
+    unsubscribeLoop(callbackId){
+        this.loopCallbacks.splice(callback, 1);
     }
     render(){
         return (<div>{this.props.children}</div>);
@@ -54,7 +55,8 @@ class Loop extends React.Component{
 }
 
 Loop.childContextTypes = {
-    subscribeLoop: PropTypes.func
+    subscribeLoop: PropTypes.func,
+    unsubscribeLoop: PropTypes.func
 };
 
 export default Loop;

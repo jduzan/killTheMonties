@@ -1,20 +1,36 @@
 import React from "react";
 import PropTypes from "prop-types";
+import autobind from "autobind-decorator";
 
 class Game extends React.Component{
     constructor(){
         super();
         this.levelLimit = {
-            x: 1,
-            x1: 1024,
-            y: 1,
-            y1: 512
+            x: 0,
+            x1: 1800,
+            y: 0,
+            y1: 900
         }
     }
     getChildContext(){
         return {
-            levelLimit: this.levelLimit
+            levelLimit: this.levelLimit,
+            checkPositionIsAvailable: this.checkPositionIsAvailable
         }
+    }
+    @autobind
+    checkPositionIsAvailable(axe, rect){
+        if(axe === "x"){
+            if(rect.x <= this.levelLimit.x || rect.x1 >= this.levelLimit.x1){
+                return false;
+            }
+        }else if(axe === "y"){
+            if(rect.y <= this.levelLimit.y || rect.y1 >= this.levelLimit.y1){
+                return false;
+            }
+        }
+
+        return true;
     }
     render(){
         const style = {
@@ -33,7 +49,8 @@ class Game extends React.Component{
 }
 
 Game.childContextTypes = {
-    levelLimit: PropTypes.object
+    levelLimit: PropTypes.object,
+    checkPositionIsAvailable: PropTypes.func
 };
 
 export default Game;
