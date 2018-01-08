@@ -30,7 +30,7 @@ class Player extends React.Component{
             x: 0,
             y: 0
         };
-        this.fireShoot = false;
+        this.fireshot = false;
     }
     componentDidMount(){
         this.loopId = this.context.subscribeLoop(this.update);
@@ -49,9 +49,9 @@ class Player extends React.Component{
         };
 
         if(mouse.leftClick){
-            this.fireShoot = true;
+            this.fireshot = true;
         }else{
-            this.fireShoot = false;
+            this.fireshot = false;
         }
     }
     @autobind
@@ -106,9 +106,9 @@ class Player extends React.Component{
         let newPosition = clone(this.state.position),
             newOrientation = clone(this.state.orientation);
 
-        if(this.fireShoot){
-            console.log("fire shoot")
-            this.context.createShoot(this.getCenter(), this.orientation);
+        if(this.fireshot){
+            let center = this.getCenter();            
+            this.context.createshot(center, this.state.orientation);
         }
 
         // Position
@@ -215,7 +215,7 @@ Player.contextTypes = {
     levelLimit: PropTypes.object,
     subscribeEvents: PropTypes.func,
     unsubcribeEvents: PropTypes.func,
-    createShoot: PropTypes.func
+    createshot: PropTypes.func
 };
 
 export default Player;

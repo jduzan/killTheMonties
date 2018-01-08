@@ -4,7 +4,7 @@ import autobind from "autobind-decorator";
 import * as GameConstant from "./gameVar";
 import {clone, checkCollision} from "./utils"
 
-class Shoot extends React.Component{
+class shot extends React.Component{
     constructor(){
         super();
         this.state = {
@@ -18,7 +18,7 @@ class Shoot extends React.Component{
         this.loopId = this.context.subscribeLoop(this.update);
         this.setState({
             position: this.props.position,
-            orientation: this.getAngle()
+            orientation: this.props.orientation
         });
     }
     componentWillUnmount(){
@@ -26,50 +26,48 @@ class Shoot extends React.Component{
     }
     @autobind
     destroy(){
-        this.context.destroyShoot(this.props.shootId);
+        this.context.destroyshot(this.props.shotId);
     }
     @autobind
     update(){
-        let position = clone(this.state.position);
-        position.x += GameConstant.SHOOT_SPEED.x;
-        position.y += GameConstant.SHOOT_SPEED.y;
-
         if(!checkCollision(this.getBoundingRectangle(), this.context.levelLimit)){
             return this.destroy();
         }
 
         this.setState({
-            position: position
+            position: this.getNextPosition()
         });
     }
     @autobind
-    getAngle(mousePosition){
-        // compute orientation with starting orientation
-        const center = this.getCenter();
-        const radians = Math.atan2(this.props.orientation.x - center.x, this.props.orientation.y - center.y);
+    getNextPosition(){
+        // compute next position angle, current position and shot speed
+        let position = clone(this.state.position);
+        const radians = Math.PI / 180 * (this.state.orientation - 90);
+        position.x += GameConstant.SHOT_SPEED.x * Math.cos(radians);
+        position.y += GameConstant.SHOT_SPEED.y * Math.sin(radians);
 
-        return Math.floor((radians * (180 / Math.PI) * -1) + 180);
+        return position;
     }
     @autobind
     getCenter(){
         return {
-            x: this.state.position.x + GameConstant.SHOOT_SIZE.x / 2,
-            y: this.state.position.y + GameConstant.SHOOT_SIZE.y / 2
+            x: this.state.position.x + GameConstant.SHOT_SIZE.x / 2,
+            y: this.state.position.y + GameConstant.SHOT_SIZE.y / 2
         }
     }
     @autobind
     getBoundingRectangle(){
         return {
             x: clone(this.state.position.x),
-            x1: clone(this.state.position.x) + GameConstant.SHOOT_SIZE.x,
+            x1: clone(this.state.position.x) + GameConstant.SHOT_SIZE.x,
             y: clone(this.state.position.y),
-            y1: clone(this.state.position.y) + GameConstant.SHOOT_SIZE.y
+            y1: clone(this.state.position.y) + GameConstant.SHOT_SIZE.y
         };
     }
     render(){
         const style = {
-            width: `${GameConstant.SHOOT_SIZE.x}px`,
-            height: `${GameConstant.SHOOT_SIZE.y}px`,
+            width: `${GameConstant.SHOT_SIZE.x}px`,
+            height: `${GameConstant.SHOT_SIZE.y}px`,
             backgroundColor: "red",
             position: "absolute",
             left: this.state.position.x,
@@ -83,17 +81,17 @@ class Shoot extends React.Component{
     }
 }
 
-Shoot.contextTypes = {
+shot.contextTypes = {
     subscribeLoop: PropTypes.func,
     unsubscribeLoop: PropTypes.func,
     levelLimit: PropTypes.object,
-    destroyShoot: PropTypes.func
+    destroyshot: PropTypes.func
 }
 
-Shoot.propTypes = {
+shot.propTypes = {
     position: PropTypes.object.isRequired,
-    orientation: PropTypes.object.isRequired,
-    shootId: PropTypes.number.isRequired
+    orientation: PropTypes.number.isRequired,
+    shotId: PropTypes.number.isRequired
 }
 
-export default Shoot;
+export default shot;

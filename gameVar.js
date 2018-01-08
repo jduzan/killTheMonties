@@ -18,14 +18,14 @@ export const PLAYER_SIZE = {
     y: 100
 }
 
-export const SHOOT_COOLDOWN = 5;
+export const SHOT_COOLDOWN = 10;
 
-export const SHOOT_SIZE = {
+export const SHOT_SIZE = {
     x: 10,
     y: 30
 }
 
-export const SHOOT_SPEED = {
-    x: 5,
-    y: 5
+export const SHOT_SPEED = {
+    x: 10,
+    y: 10
 }

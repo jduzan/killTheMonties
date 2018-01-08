@@ -3,13 +3,13 @@ import PropTypes from "prop-types";
 import autobind from "autobind-decorator";
 import {checkCollision, clone} from "./utils";
 import * as GameConstant from "./gameVar";
-import Shoot from "./shoot"
+import Shot from "./shot"
 
 class Game extends React.Component{
     constructor(){
         super();
         this.state = {
-            shoots: []
+            shots: []
         };
         this.levelLimit = {
             x: 0,
@@ -18,8 +18,8 @@ class Game extends React.Component{
             y1: 900
         }
         this.ennemies = [];
-        this.shootCooldown = 0;
-        this.shootsToFire = [];
+        this.shotCooldown = 0;
+        this.shotsToFire = [];
     }
     componentDidMount(){
         this.loopId = this.context.subscribeLoop(this.update);
@@ -32,32 +32,32 @@ class Game extends React.Component{
             updateEnnemy: this.updateEnnemy,
             checkEnnemyCollision: this.checkEnnemyCollision,
             checkEnnemyStartingPositionAvailable: this.checkEnnemyStartingPositionAvailable,
-            createShoot: this.createShoot,
-            destroyShoot: this.destroyShoot
+            createshot: this.createshot,
+            destroyshot: this.destroyshot
         }
     }
     @autobind
     update(){
-        if(this.shootCooldown === 0){
-            if(this.shootsToFire.length > 0){
-                let shoots = [...clone(this.state.shoots), ...this.shootsToFire.splice(0, 1)];
+        if(this.shotCooldown === 0){
+            if(this.shotsToFire.length > 0){
+                let shots = [...clone(this.state.shots), ...this.shotsToFire.splice(0, 1)];
 
                 this.setState({
-                    shoots: shoots
+                    shots: shots
                 });
             }
 
-            this.shootCooldown = clone(GameConstant.SHOOT_COOLDOWN);
+            this.shotCooldown = clone(GameConstant.SHOT_COOLDOWN);
         }else{
-            this.shootCooldown--;
+            this.shotCooldown--;
         }
     }
     @autobind
-    createShoot(startingPosition, mousePosition){
-        if(this.shootCooldown === 0){
-            this.shootsToFire.push({
+    createshot(startingPosition, mouseAngle){
+        if(this.shotCooldown === 0){
+            this.shotsToFire.push({
                 position: startingPosition,
-                orientation: mousePosition
+                orientation: mouseAngle
             });
         }
     }
@@ -121,12 +121,12 @@ class Game extends React.Component{
         this.ennemies[ennemyId] = ennemy;
     }
     @autobind
-    destroyShoot(shootId){
-        let shoots = clone(this.state.shoots);
-        shoots[shootId] = null;
+    destroyshot(shotId){
+        let shots = clone(this.state.shots);
+        shots[shotId] = null;
 
         this.setState({
-            shoots: shoots
+            shots: shots
         });
     }
     render(){
@@ -137,21 +137,21 @@ class Game extends React.Component{
             position: "relative"
         };
 
-        let shoots = [];
+        let shots = [];
 
-        for(let i = this.state.shoots.length; i--;){
-            const shoot = this.state.shoots[i];
+        for(let i = this.state.shots.length; i--;){
+            const shot = this.state.shots[i];
 
-            if(shoot){
-                shoots.push((
-                    <Shoot key={i} position={shoot.position} orientation={shoot.orientation} shootId={i}/>
+            if(shot){
+                shots.push((
+                    <Shot key={i} position={shot.position} orientation={shot.orientation} shotId={i}/>
                 ));
             }
         }
 
         return (
             <div style={style}>
-                {shoots}
+                {shots}
                 {this.props.children}
             </div>
         );
@@ -165,8 +165,8 @@ Game.childContextTypes = {
     updateEnnemy: PropTypes.func,
     checkEnnemyCollision: PropTypes.func,
     checkEnnemyStartingPositionAvailable: PropTypes.func,
-    createShoot: PropTypes.func,
-    destroyShoot: PropTypes.func
+    createshot: PropTypes.func,
+    destroyshot: PropTypes.func
 };
 
 Game.contextTypes = {
