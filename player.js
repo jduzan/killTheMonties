@@ -30,6 +30,7 @@ class Player extends React.Component{
             x: 0,
             y: 0
         };
+        this.fireShoot = false;
     }
     componentDidMount(){
         this.loopId = this.context.subscribeLoop(this.update);
@@ -45,6 +46,12 @@ class Player extends React.Component{
         this.orientation = {
             x: mouse.position.x,
             y: mouse.position.y
+        };
+
+        if(mouse.leftClick){
+            this.fireShoot = true;
+        }else{
+            this.fireShoot = false;
         }
     }
     @autobind
@@ -84,8 +91,8 @@ class Player extends React.Component{
     }
     @autobind
     getBoundingRectangle(x, y){
-        const   boundingX = x || this.state.position.x,
-                boundingY = y || this.state.position.y
+        const   boundingX = x || clone(this.state.position.x),
+                boundingY = y || clone(this.state.position.y)
 
         return {
             x: boundingX,
@@ -98,6 +105,11 @@ class Player extends React.Component{
     update(){
         let newPosition = clone(this.state.position),
             newOrientation = clone(this.state.orientation);
+
+        if(this.fireShoot){
+            console.log("fire shoot")
+            this.context.createShoot(this.getCenter(), this.orientation);
+        }
 
         // Position
         if(this.movement.x != 0 || this.movement.y != 0){
@@ -156,13 +168,17 @@ class Player extends React.Component{
     @autobind
     getMouseAngle(mousePosition){
         // compute player orientation based on mouse direction
-        const   rect = this.getBoundingRectangle(),
-                xCenter = rect.x1 - GameConstant.PLAYER_SIZE.x / 2,
-                yCenter = rect.y1 - GameConstant.PLAYER_SIZE.y / 2;
-
-        const radians = Math.atan2(mousePosition.x - xCenter, mousePosition.y - yCenter);
+        const   center = this.getCenter();
+        const radians = Math.atan2(mousePosition.x - center.x, mousePosition.y - center.y);
 
         return Math.floor((radians * (180 / Math.PI) * -1) + 180);
+    }
+    @autobind
+    getCenter(){
+        return {
+            x: this.state.position.x + GameConstant.PLAYER_SIZE.x / 2,
+            y: this.state.position.y + GameConstant.PLAYER_SIZE.y / 2
+        }
     }
     render(){
         const style = {
@@ -198,7 +214,8 @@ Player.contextTypes = {
     unsubscribeLoop: PropTypes.func,
     levelLimit: PropTypes.object,
     subscribeEvents: PropTypes.func,
-    unsubcribeEvents: PropTypes.func
+    unsubcribeEvents: PropTypes.func,
+    createShoot: PropTypes.func
 };
 
 export default Player;

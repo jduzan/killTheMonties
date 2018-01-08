@@ -57,8 +57,8 @@ class Ennemy extends React.Component{
     }
     @autobind
     getBoundingRectangle(x, y){
-        const   boundingX = x || this.state.position.x,
-                boundingY = y || this.state.position.y
+        const   boundingX = x || clone(this.state.position.x),
+                boundingY = y || clone(this.state.position.y)
 
         return {
             x: boundingX,
@@ -120,7 +120,9 @@ class Ennemy extends React.Component{
         const  rect = this.getBoundingRectangle();
 
         // If colliding with another ennemy, go the other way
-        if(this.context.checkEnnemyCollision(rect, this.ennemyId)){
+        const checkResult = this.context.checkEnnemyCollision(rect, this.ennemyId);
+
+        if(checkResult.colliding){
             for(let key in newDirection){
                 newDirection[key] = !newDirection[key];
             }

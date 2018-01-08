@@ -28,6 +28,8 @@ class Events extends React.Component{
         window.addEventListener("keydown", this.onKeyDown, true);
         window.addEventListener("keyup", this.onKeyUp, true);
         window.addEventListener("mousemove", this.onMouseMove, true);
+        window.addEventListener("mousedown", this.onMouseDown, true);
+        window.addEventListener("mouseup", this.onMouseUp, true);
     }
     getChildContext(){
         return {
@@ -61,6 +63,30 @@ class Events extends React.Component{
             x: event.x,
             y: event.y
         };
+
+        this.notifyMouseEvent();
+    }
+    @autobind
+    onMouseDown(event){
+        if(event.button === 0){
+            this.mouse.leftClick = true;
+        }
+
+        if(event.button === 1){
+            this.mouse.right = true;
+        }
+
+        this.notifyMouseEvent();
+    }
+    @autobind
+    onMouseUp(event){
+        if(event.button === 0){
+            this.mouse.leftClick = false;
+        }
+
+        if(event.button === 1){
+            this.mouse.right = false;
+        }
 
         this.notifyMouseEvent();
     }

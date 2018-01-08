@@ -11,7 +11,9 @@ class App extends React.Component{
         this.ennemyCount = 0;
     }
     render(){
-        this.ennemyCount++;
+        if(this.ennemyCount < 10){
+            this.ennemyCount++;
+        }
 
         let ennemies = [];
 
@@ -19,14 +21,17 @@ class App extends React.Component{
             ennemies.push((<Ennemy key={i} />));
         }
 
-        setTimeout(() => {
-            this.forceUpdate();
-        }, 1000);
+        if(this.ennemyCount < 10){
+            setTimeout(() => {
+                this.forceUpdate();
+            }, 1000);
+        }
 
         return (
             <Loop>
                 <Events>
                     <Game>
+                        <Player />
                         {ennemies}
                     </Game>
                 </Events>

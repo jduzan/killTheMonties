@@ -47,7 +47,7 @@ class Loop extends React.Component{
     }
     @autobind
     unsubscribeLoop(callbackId){
-        this.loopCallbacks.splice(callback, 1);
+        this.loopCallbacks[callbackId] = null;
     }
     render(){
         return (<div>{this.props.children}</div>);
